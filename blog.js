@@ -9,6 +9,14 @@ class SimpleBlogSystem {
                 content: 'テスト',
                 excerpt: 'テスト',
                 tags: ['テスト']
+            },
+            {
+                id: '2025-07-18',
+                date: '2025-07-18',
+                title: '宿泊',
+                content: '羽田キャビン',
+                excerpt: '羽田キャビン',
+                tags: []
             }
         ];
         this.loadStaticPosts();
