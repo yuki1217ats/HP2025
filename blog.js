@@ -5,18 +5,11 @@ class SimpleBlogSystem {
             {
                 id: '2025-07-18',
                 date: '2025-07-18',
-                title: 'テスト',
-                content: 'テスト',
-                excerpt: 'テスト',
-                tags: ['テスト']
-            },
-            {
-                id: '2025-07-18',
-                date: '2025-07-18',
                 title: '宿泊',
-                content: '羽田キャビン',
-                excerpt: '羽田キャビン',
-                tags: []
+                content: '羽田ファーストキャビンに宿泊
+飛行機が遅れて22:00着だったので助かった。',
+                excerpt: '羽田ファーストキャビン',
+                tags: ['# 宿泊']
             }
         ];
         this.loadStaticPosts();
