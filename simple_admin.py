@@ -7,6 +7,7 @@ import shutil
 from datetime import datetime
 import subprocess
 import re
+import calendar
 
 class SimpleAdminTool:
     def __init__(self):
@@ -93,8 +94,12 @@ class SimpleAdminTool:
         
         # 日付
         ttk.Label(right_frame, text="日付:").grid(row=1, column=0, sticky='w', pady=5)
-        self.date_entry = ttk.Entry(right_frame, width=20)
-        self.date_entry.grid(row=1, column=1, sticky='w', pady=5)
+        date_frame = ttk.Frame(right_frame)
+        date_frame.grid(row=1, column=1, sticky='w', pady=5)
+        
+        self.date_entry = ttk.Entry(date_frame, width=15)
+        self.date_entry.grid(row=0, column=0, padx=(0, 5))
+        ttk.Button(date_frame, text="📅", command=self.show_calendar).grid(row=0, column=1)
         
         # タグ
         ttk.Label(right_frame, text="タグ（カンマ区切り）:").grid(row=2, column=0, sticky='w', pady=5)
@@ -487,6 +492,180 @@ class SimpleAdminTool:
         """Git push"""
         if messagebox.askyesno("確認", "GitHubにプッシュしますか？"):
             self.run_git_command("git push origin main")
+    
+    def show_calendar(self):
+        """カレンダーダイアログを表示"""
+        dialog = tk.Toplevel(self.root)
+        dialog.title("日付選択")
+        dialog.geometry("300x350")
+        dialog.resizable(False, False)
+        
+        # 現在の日付を取得
+        current_date = datetime.now()
+        try:
+            # 入力欄に日付がある場合は使用
+            if self.date_entry.get():
+                current_date = datetime.strptime(self.date_entry.get(), "%Y-%m-%d")
+        except ValueError:
+            pass
+        
+        # カレンダー変数
+        self.cal_year = current_date.year
+        self.cal_month = current_date.month
+        self.selected_day = current_date.day
+        
+        # ヘッダー
+        header_frame = ttk.Frame(dialog)
+        header_frame.pack(fill='x', padx=10, pady=10)
+        
+        ttk.Button(header_frame, text="◀", command=lambda: self.change_cal_month(-1)).pack(side='left')
+        self.cal_title = ttk.Label(header_frame, text="", font=("", 12, "bold"))
+        self.cal_title.pack(side='left', expand=True)
+        ttk.Button(header_frame, text="▶", command=lambda: self.change_cal_month(1)).pack(side='right')
+        
+        # カレンダーフレーム
+        self.cal_frame = ttk.Frame(dialog)
+        self.cal_frame.pack(fill='both', expand=True, padx=10, pady=10)
+        
+        # 日付入力フレーム
+        input_frame = ttk.Frame(dialog)
+        input_frame.pack(fill='x', padx=10, pady=10)
+        
+        ttk.Label(input_frame, text="直接入力 (YYYY-MM-DD):").pack()
+        self.direct_date_entry = ttk.Entry(input_frame, width=15)
+        self.direct_date_entry.pack(pady=5)
+        self.direct_date_entry.insert(0, current_date.strftime("%Y-%m-%d"))
+        
+        # ボタンフレーム
+        button_frame = ttk.Frame(dialog)
+        button_frame.pack(fill='x', padx=10, pady=10)
+        
+        ttk.Button(button_frame, text="OK", command=lambda: self.select_calendar_date(dialog)).pack(side='right', padx=5)
+        ttk.Button(button_frame, text="キャンセル", command=dialog.destroy).pack(side='right', padx=5)
+        ttk.Button(button_frame, text="今日", command=lambda: self.set_today(dialog)).pack(side='left')
+        
+        # カレンダー描画
+        self.draw_calendar()
+        
+        # ダイアログを中央に配置
+        dialog.transient(self.root)
+        dialog.grab_set()
+        dialog.focus_set()
+        
+        # 位置を中央に調整
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() // 2) - (dialog.winfo_width() // 2)
+        y = (dialog.winfo_screenheight() // 2) - (dialog.winfo_height() // 2)
+        dialog.geometry(f"+{x}+{y}")
+    
+    def change_cal_month(self, delta):
+        """カレンダーの月を変更"""
+        self.cal_month += delta
+        if self.cal_month < 1:
+            self.cal_month = 12
+            self.cal_year -= 1
+        elif self.cal_month > 12:
+            self.cal_month = 1
+            self.cal_year += 1
+        self.draw_calendar()
+    
+    def draw_calendar(self):
+        """カレンダーを描画"""
+        # 既存のウィジェットを削除
+        for widget in self.cal_frame.winfo_children():
+            widget.destroy()
+        
+        # タイトル更新
+        month_names = ['', '1月', '2月', '3月', '4月', '5月', '6月',
+                      '7月', '8月', '9月', '10月', '11月', '12月']
+        self.cal_title.config(text=f"{self.cal_year}年 {month_names[self.cal_month]}")
+        
+        # 曜日ヘッダー
+        day_headers = ['日', '月', '火', '水', '木', '金', '土']
+        for i, day in enumerate(day_headers):
+            color = 'red' if i == 0 else 'blue' if i == 6 else 'black'
+            label = ttk.Label(self.cal_frame, text=day, foreground=color, font=("", 10, "bold"))
+            label.grid(row=0, column=i, padx=2, pady=2)
+        
+        # カレンダー生成
+        cal = calendar.monthcalendar(self.cal_year, self.cal_month)
+        
+        for week_num, week in enumerate(cal, 1):
+            for day_num, day in enumerate(week):
+                if day == 0:
+                    continue
+                
+                # ボタンスタイル
+                style = 'selected' if day == self.selected_day else 'normal'
+                
+                btn = tk.Button(self.cal_frame, text=str(day), width=3, height=1,
+                              command=lambda d=day: self.select_cal_day(d))
+                
+                # 色設定
+                if day == self.selected_day:
+                    btn.config(bg='#4CAF50', fg='white', font=("", 10, "bold"))
+                elif day_num == 0:  # 日曜日
+                    btn.config(fg='red')
+                elif day_num == 6:  # 土曜日
+                    btn.config(fg='blue')
+                
+                btn.grid(row=week_num, column=day_num, padx=1, pady=1, sticky='nsew')
+        
+        # 投稿がある日をハイライト
+        self.highlight_post_days()
+    
+    def select_cal_day(self, day):
+        """カレンダーの日を選択"""
+        self.selected_day = day
+        # 直接入力欄も更新
+        selected_date = datetime(self.cal_year, self.cal_month, day)
+        self.direct_date_entry.delete(0, tk.END)
+        self.direct_date_entry.insert(0, selected_date.strftime("%Y-%m-%d"))
+        self.draw_calendar()
+    
+    def highlight_post_days(self):
+        """投稿がある日をハイライト"""
+        for post in self.posts:
+            try:
+                post_date = datetime.strptime(post['date'], "%Y-%m-%d")
+                if (post_date.year == self.cal_year and 
+                    post_date.month == self.cal_month):
+                    
+                    # 該当する日のボタンを見つけてハイライト
+                    for widget in self.cal_frame.winfo_children():
+                        if (isinstance(widget, tk.Button) and 
+                            widget.cget('text') == str(post_date.day)):
+                            if post_date.day != self.selected_day:
+                                widget.config(bg='#E3F2FD', font=("", 10, "bold"))
+            except ValueError:
+                continue
+    
+    def set_today(self, dialog):
+        """今日の日付を設定"""
+        today = datetime.now()
+        self.cal_year = today.year
+        self.cal_month = today.month
+        self.selected_day = today.day
+        self.direct_date_entry.delete(0, tk.END)
+        self.direct_date_entry.insert(0, today.strftime("%Y-%m-%d"))
+        self.draw_calendar()
+    
+    def select_calendar_date(self, dialog):
+        """カレンダーから日付を選択"""
+        try:
+            # 直接入力欄の値を使用
+            date_str = self.direct_date_entry.get()
+            
+            # 日付の妥当性チェック
+            datetime.strptime(date_str, "%Y-%m-%d")
+            
+            # メインの日付入力欄に設定
+            self.date_entry.delete(0, tk.END)
+            self.date_entry.insert(0, date_str)
+            
+            dialog.destroy()
+        except ValueError:
+            messagebox.showerror("エラー", "正しい日付形式で入力してください (YYYY-MM-DD)")
     
     def run(self):
         """アプリケーションを実行"""
