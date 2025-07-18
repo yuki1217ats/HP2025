@@ -297,6 +297,162 @@
             white-space: pre-wrap;
         }
         
+        /* Blog Page with Calendar */
+        .blog-page {
+            display: none;
+            padding: 100px 0 80px;
+            min-height: 100vh;
+            background: #f8f9fa;
+        }
+        
+        .blog-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Calendar Styles */
+        .calendar-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 100px;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .calendar-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .calendar-nav button {
+            background: none;
+            border: 1px solid #ddd;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .calendar-nav button:hover {
+            background: #f0f0f0;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        
+        .calendar-day-header {
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            padding: 5px;
+        }
+        
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .calendar-day:hover {
+            background: #f0f0f0;
+        }
+        
+        .calendar-day.has-post {
+            background: #1d3557;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .calendar-day.has-post:hover {
+            background: #0a1929;
+        }
+        
+        .calendar-day.other-month {
+            color: #ccc;
+        }
+        
+        .calendar-day.selected {
+            background: #457b9d;
+            color: white;
+        }
+        
+        /* Post List */
+        .post-list-container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+        
+        .post-list-title {
+            font-size: 28px;
+            margin-bottom: 30px;
+        }
+        
+        .post-list-item {
+            padding: 20px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .post-list-item:last-child {
+            border-bottom: none;
+        }
+        
+        .post-list-item h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .post-list-item a {
+            color: #1d3557;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .post-list-item a:hover {
+            color: #0a1929;
+        }
+        
+        .post-list-date {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .post-list-excerpt {
+            color: #666;
+            line-height: 1.6;
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .nav-links {
@@ -313,6 +469,17 @@
             
             .post-body {
                 font-size: 16px;
+            }
+            
+            .blog-layout {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .calendar-container {
+                position: relative;
+                top: auto;
+                max-height: none;
             }
         }
     </style>
@@ -371,6 +538,30 @@
         </div>
     </section>
     
+    <!-- Blog Page with Calendar -->
+    <section id="blog" class="blog-page" style="display: none;">
+        <div class="blog-layout">
+            <aside class="calendar-container">
+                <div class="calendar-header">
+                    <h3 class="calendar-title" id="calendarTitle">Calendar</h3>
+                    <div class="calendar-nav">
+                        <button onclick="changeMonth(-1)">←</button>
+                        <button onclick="changeMonth(1)">→</button>
+                    </div>
+                </div>
+                <div class="calendar-grid" id="calendar">
+                    <!-- Calendar will be rendered here -->
+                </div>
+            </aside>
+            <main class="post-list-container">
+                <h2 class="post-list-title" id="postListTitle">All Posts</h2>
+                <div id="postList">
+                    <!-- Post list will be rendered here -->
+                </div>
+            </main>
+        </div>
+    </section>
+    
     <!-- Post View -->
     <section id="post-view" class="post-view">
         <div class="container">
@@ -384,11 +575,16 @@
     <script src="blog.js?v=1752837046"></script>
     <script>
         let currentSection = 'home';
+        let currentYear = new Date().getFullYear();
+        let currentMonth = new Date().getMonth();
+        let selectedDate = null;
         
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             loadLatestPosts();
             setupNavigation();
+            renderCalendar();
+            renderPostList();
         });
         
         // Load latest posts
@@ -411,8 +607,14 @@
             // Hide all sections
             document.getElementById('home').style.display = section === 'home' ? 'flex' : 'none';
             document.getElementById('latest-posts').style.display = section === 'home' ? 'block' : 'none';
+            document.getElementById('blog').style.display = section === 'blog' ? 'block' : 'none';
             document.getElementById('contact').style.display = section === 'contact' ? 'block' : 'none';
             document.getElementById('post-view').style.display = 'none';
+            
+            if (section === 'blog') {
+                renderCalendar();
+                renderPostList();
+            }
             
             currentSection = section;
             window.scrollTo(0, 0);
@@ -438,6 +640,7 @@
             // Hide other sections and show post
             document.getElementById('home').style.display = 'none';
             document.getElementById('latest-posts').style.display = 'none';
+            document.getElementById('blog').style.display = 'none';
             document.getElementById('contact').style.display = 'none';
             document.getElementById('post-view').style.display = 'block';
             
@@ -448,6 +651,144 @@
         function goBack() {
             document.getElementById('post-view').style.display = 'none';
             showSection(currentSection);
+        }
+        
+        // Calendar functions
+        function renderCalendar() {
+            const calendar = document.getElementById('calendar');
+            const title = document.getElementById('calendarTitle');
+            
+            // Update title
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+            title.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+            
+            // Clear calendar
+            calendar.innerHTML = '';
+            
+            // Add day headers
+            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayHeaders.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'calendar-day-header';
+                header.textContent = day;
+                calendar.appendChild(header);
+            });
+            
+            // Get first day of month and number of days
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+            
+            // Get posts for this month
+            const posts = blog.getAllPosts();
+            const postsThisMonth = posts.filter(post => {
+                const date = new Date(post.date);
+                return date.getFullYear() === currentYear && date.getMonth() === currentMonth;
+            });
+            
+            // Create post date map
+            const postDates = new Set(postsThisMonth.map(p => new Date(p.date).getDate()));
+            
+            // Add previous month's days
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const day = document.createElement('div');
+                day.className = 'calendar-day other-month';
+                day.textContent = daysInPrevMonth - i;
+                calendar.appendChild(day);
+            }
+            
+            // Add current month's days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'calendar-day';
+                dayEl.textContent = day;
+                
+                if (postDates.has(day)) {
+                    dayEl.classList.add('has-post');
+                }
+                
+                if (selectedDate && 
+                    selectedDate.getFullYear() === currentYear &&
+                    selectedDate.getMonth() === currentMonth &&
+                    selectedDate.getDate() === day) {
+                    dayEl.classList.add('selected');
+                }
+                
+                dayEl.onclick = () => selectDate(day);
+                calendar.appendChild(dayEl);
+            }
+            
+            // Add next month's days
+            const totalCells = calendar.children.length - 7; // Subtract headers
+            const remainingCells = 35 - totalCells;
+            for (let day = 1; day <= remainingCells; day++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'calendar-day other-month';
+                dayEl.textContent = day;
+                calendar.appendChild(dayEl);
+            }
+        }
+        
+        function changeMonth(direction) {
+            currentMonth += direction;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            } else if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+        }
+        
+        function selectDate(day) {
+            selectedDate = new Date(currentYear, currentMonth, day);
+            renderCalendar();
+            
+            // Filter posts for selected date
+            const posts = blog.getAllPosts();
+            const postsForDate = posts.filter(post => {
+                const postDate = new Date(post.date);
+                return postDate.getFullYear() === selectedDate.getFullYear() &&
+                       postDate.getMonth() === selectedDate.getMonth() &&
+                       postDate.getDate() === selectedDate.getDate();
+            });
+            
+            // Update post list
+            if (postsForDate.length > 0) {
+                renderPostList(postsForDate, `Posts for ${selectedDate.toLocaleDateString()}`);
+            } else {
+                renderPostList([], `No posts for ${selectedDate.toLocaleDateString()}`);
+            }
+        }
+        
+        function renderPostList(posts = null, title = 'All Posts') {
+            const postList = document.getElementById('postList');
+            const titleEl = document.getElementById('postListTitle');
+            
+            // Clear selected date if showing all posts
+            if (title === 'All Posts') {
+                selectedDate = null;
+                renderCalendar();
+            }
+            
+            titleEl.textContent = title;
+            
+            const postsToShow = posts || blog.getAllPosts();
+            
+            if (postsToShow.length === 0) {
+                postList.innerHTML = '<p style="color: #666;">No posts found.</p>';
+                return;
+            }
+            
+            postList.innerHTML = postsToShow.map(post => `
+                <div class="post-list-item">
+                    <div class="post-list-date">${formatDate(post.date)}</div>
+                    <h3><a href="#" onclick="showPost('${post.id}'); return false;">${post.title}</a></h3>
+                    <p class="post-list-excerpt">${post.excerpt}</p>
+                </div>
+            `).join('');
         }
         
         // Setup navigation

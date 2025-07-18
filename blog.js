@@ -1,45 +1,33 @@
 // Simple Blog System - Static Content Reader
 class SimpleBlogSystem {
     constructor() {
-        this.posts = [];
+        this.posts = [
+            {
+                id: '2025-07-18',
+                date: '2025-07-18',
+                title: 'テスト',
+                content: 'テスト',
+                excerpt: 'テスト',
+                tags: ['テスト']
+            }
+        ];
         this.loadStaticPosts();
     }
 
     // Load static posts from markdown files or JSON
     loadStaticPosts() {
-        // For now, use static sample posts
-        // In the future, this could read from a posts.json file
-        this.posts = [
-            {
-                id: '2025-01-18',
-                date: '2025-01-18',
-                title: '冬の散歩で見つけた風景',
-                content: '今日は久しぶりに晴れたので、カメラを持って近所を散歩してきました。冬の澄んだ空気の中で、いつもとは違う景色が広がっていました。\n\n公園の池には薄い氷が張っていて、朝日がキラキラと反射していました。木々の枝には霜が降りて、まるで銀細工のよう。\n\n写真を撮りながら、自然の美しさに改めて気づかされました。日常の中にも、こんな素敵な瞬間があるんですね。',
-                excerpt: '今日は久しぶりに晴れたので、カメラを持って近所を散歩してきました。冬の澄んだ空気の中で、いつもとは違う景色が広がっていました。',
-                tags: ['写真', '散歩', '自然']
-            },
-            {
-                id: '2025-01-15',
-                date: '2025-01-15',
-                title: '新しいカメラを購入しました',
-                content: 'ずっと欲しかったミラーレスカメラをついに手に入れました！\n\n選んだのは、軽量で持ち運びやすいモデル。これからもっと写真を撮りに出かけたくなります。\n\n早速、部屋の中でテスト撮影をしてみましたが、画質の良さに感動。特に暗い場所での撮影性能が素晴らしいです。\n\n週末は新しいカメラを持って、撮影旅行に出かける予定です。',
-                excerpt: 'ずっと欲しかったミラーレスカメラをついに手に入れました！選んだのは、軽量で持ち運びやすいモデル。これからもっと写真を撮りに出かけたくなります。',
-                tags: ['カメラ', '写真', '買い物']
-            },
-            {
-                id: '2025-01-10',
-                date: '2025-01-10',
-                title: '2025年の目標',
-                content: '新年あけましておめでとうございます。\n\n今年の目標を立てたので、ここに記録しておきます。\n\n1. 写真スキルの向上\n   - 月に最低1回は撮影旅行に行く\n   - オンライン写真講座を受講する\n\n2. ブログの定期更新\n   - 週に2回は更新する\n   - 写真と文章のクオリティを上げる\n\n3. 健康的な生活\n   - 毎日30分は散歩する\n   - 早寝早起きを心がける\n\n今年も素敵な一年になりますように！',
-                excerpt: '新年あけましておめでとうございます。今年の目標を立てたので、ここに記録しておきます。写真スキルの向上、ブログの定期更新、健康的な生活。',
-                tags: ['目標', '新年', '計画']
-            }
-        ];
+        // Posts are already loaded in constructor
+        // This method can be used to refresh posts if needed
     }
 
     // Get all posts
     getAllPosts() {
         return this.posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+    
+    // Get a single post by ID
+    getPost(id) {
+        return this.posts.find(post => post.id === id);
     }
 
     // Get posts for a specific month
