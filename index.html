@@ -495,7 +495,7 @@
                                 </div>
                             </div>
                             <h1 class="post-title">${post.title}</h1>
-                            <div class="post-body">${post.content.replace(/\n/g, '<br>')}</div>
+                            <div class="post-body">${formatPostContent(post.content)}</div>
                         </article>
                     </div>
                 </section>
@@ -649,6 +649,18 @@
                 month: '2-digit',
                 day: '2-digit'
             }).replace(/\//g, '.');
+        }
+        
+        // Format post content with markdown support
+        function formatPostContent(content) {
+            // Convert markdown images to HTML
+            const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+            let formattedContent = content.replace(imageRegex, '<img src="$2" alt="$1" style="max-width: 100%; height: auto; margin: 20px 0;">');
+            
+            // Convert line breaks to HTML
+            formattedContent = formattedContent.replace(/\n/g, '<br>');
+            
+            return formattedContent;
         }
     </script>
     

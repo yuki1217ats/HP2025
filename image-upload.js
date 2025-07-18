@@ -76,10 +76,13 @@ class GitHubImageUploader {
         }
 
         const result = await response.json();
+        // Use raw GitHub URL for direct image access
+        const rawUrl = `https://raw.githubusercontent.com/${this.repo}/${this.branch}/${this.imageFolder}/${filename}`;
         return {
             filename: filename,
-            url: result.content.download_url,
-            path: result.content.path
+            url: rawUrl,
+            path: result.content.path,
+            download_url: result.content.download_url
         };
     }
 
@@ -104,7 +107,8 @@ class GitHubImageUploader {
                 /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name)
             ).map(file => ({
                 name: file.name,
-                url: file.download_url,
+                url: `https://raw.githubusercontent.com/${this.repo}/${this.branch}/${this.imageFolder}/${file.name}`,
+                download_url: file.download_url,
                 path: file.path
             }));
         } catch (error) {
