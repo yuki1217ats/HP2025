@@ -114,12 +114,14 @@
         
         .cat {
             position: absolute;
-            font-size: 40px;
+            width: 60px;
+            height: 60px;
             animation: float 6s ease-in-out infinite;
-            opacity: 0.8;
+            opacity: 0.9;
             cursor: pointer;
             pointer-events: all;
             transition: transform 0.3s ease;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
         }
         
         .cat:hover {
@@ -181,26 +183,36 @@
         .walking-cat {
             position: absolute;
             bottom: 30%;
-            font-size: 35px;
+            width: 80px;
+            height: 80px;
             animation: walk 15s linear infinite;
             z-index: 5;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
         }
         
         @keyframes walk {
             0% {
-                left: -60px;
+                left: -80px;
                 transform: scaleX(1);
+            }
+            25% {
+                left: 25%;
+                transform: scaleX(1) translateY(-10px);
             }
             50% {
                 left: 50%;
-                transform: scaleX(1);
+                transform: scaleX(1) translateY(0px);
             }
             50.1% {
-                transform: scaleX(-1);
+                transform: scaleX(-1) translateY(0px);
+            }
+            75% {
+                left: 75%;
+                transform: scaleX(-1) translateY(-10px);
             }
             100% {
-                left: calc(100% + 60px);
-                transform: scaleX(-1);
+                left: calc(100% + 80px);
+                transform: scaleX(-1) translateY(0px);
             }
         }
         
@@ -209,9 +221,11 @@
             position: absolute;
             bottom: 15%;
             right: 5%;
-            font-size: 30px;
+            width: 70px;
+            height: 70px;
             animation: sleep 4s ease-in-out infinite;
             z-index: 5;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
         }
         
         @keyframes sleep {
@@ -625,18 +639,18 @@
         
         <!-- Floating cats -->
         <div class="floating-cats">
-            <div class="cat cat1" onclick="meow()" title="にゃー！">🐱</div>
-            <div class="cat cat2" onclick="meow()" title="ふわふわ〜">😺</div>
-            <div class="cat cat3" onclick="meow()" title="遊ぼう！">😸</div>
-            <div class="cat cat4" onclick="meow()" title="きらきら✨">😻</div>
-            <div class="cat cat5" onclick="meow()" title="zzz...">😴</div>
+            <img src="https://openclipart.org/image/400px/216736" class="cat cat1" onclick="meow()" title="にゃー！" alt="可愛い猫1">
+            <img src="https://openclipart.org/image/400px/183893" class="cat cat2" onclick="meow()" title="ふわふわ〜" alt="可愛い猫2">
+            <img src="https://openclipart.org/image/400px/325321" class="cat cat3" onclick="meow()" title="遊ぼう！" alt="可愛い猫3">
+            <img src="https://openclipart.org/image/400px/249159" class="cat cat4" onclick="meow()" title="きらきら✨" alt="可愛い猫4">
+            <img src="https://openclipart.org/image/400px/231567" class="cat cat5" onclick="meow()" title="zzz..." alt="可愛い猫5">
         </div>
         
         <!-- Walking cat -->
-        <div class="walking-cat" onclick="meow()" title="お散歩中〜">🐾</div>
+        <img src="https://openclipart.org/image/400px/216736" class="walking-cat" onclick="meow()" title="お散歩中〜" alt="歩く猫">
         
         <!-- Sleeping cat -->
-        <div class="sleeping-cat" onclick="meow()" title="すやすや...">😴</div>
+        <img src="https://openclipart.org/image/400px/231567" class="sleeping-cat" onclick="meow()" title="すやすや..." alt="寝る猫">
         
         <div class="hero-content">
             <h1 class="hero-title">Welcome to my world</h1>
