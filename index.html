@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>My Personal Space</title>
     <style>
         * {
@@ -458,6 +461,7 @@
             loadLatestPosts();
             setupNavigation();
             setupCalendar();
+            setupAutoRefresh();
         });
         
         // Load latest posts
@@ -661,6 +665,54 @@
             formattedContent = formattedContent.replace(/\n/g, '<br>');
             
             return formattedContent;
+        }
+        
+        // Setup auto-refresh system
+        function setupAutoRefresh() {
+            // Listen for blog updates
+            window.addEventListener('blogUpdated', function(event) {
+                console.log('Blog updated, refreshing content...');
+                if (blog.refreshData()) {
+                    refreshCurrentView();
+                }
+            });
+            
+            // Check for updates every 5 seconds
+            setInterval(function() {
+                if (blog.needsRefresh()) {
+                    console.log('Data needs refresh, updating...');
+                    if (blog.refreshData()) {
+                        refreshCurrentView();
+                    }
+                }
+            }, 5000);
+            
+            // Listen for storage events (other tabs/windows)
+            window.addEventListener('storage', function(event) {
+                if (event.key === 'blogPosts' || event.key === 'blogVersion') {
+                    console.log('Storage updated, refreshing content...');
+                    if (blog.refreshData()) {
+                        refreshCurrentView();
+                    }
+                }
+            });
+        }
+        
+        // Refresh current view
+        function refreshCurrentView() {
+            if (currentSection === 'home') {
+                loadLatestPosts();
+            } else if (currentSection === 'blog') {
+                generateCalendar();
+            }
+            
+            // If viewing a post, refresh it
+            if (selectedPost) {
+                const updatedPost = blog.getPost(selectedPost.id);
+                if (updatedPost && JSON.stringify(updatedPost) !== JSON.stringify(selectedPost)) {
+                    showPost(updatedPost.id);
+                }
+            }
         }
     </script>
     

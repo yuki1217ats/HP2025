@@ -3,6 +3,7 @@ class BlogSystem {
     constructor() {
         this.posts = this.loadPosts();
         this.currentPost = null;
+        this.version = Date.now(); // Cache busting version
     }
 
     // Load posts from localStorage or JSON file
@@ -43,7 +44,14 @@ class BlogSystem {
 
     // Save posts to localStorage
     savePosts() {
+        this.version = Date.now(); // Update version when saving
         localStorage.setItem('blogPosts', JSON.stringify(this.posts));
+        localStorage.setItem('blogVersion', this.version.toString());
+        
+        // Trigger storage event for other tabs/windows
+        window.dispatchEvent(new CustomEvent('blogUpdated', { 
+            detail: { version: this.version } 
+        }));
     }
 
     // Get all posts
@@ -120,6 +128,25 @@ class BlogSystem {
             post.tags.forEach(tag => tags.add(tag));
         });
         return Array.from(tags);
+    }
+    
+    // Check if data needs refresh
+    needsRefresh() {
+        const storedVersion = localStorage.getItem('blogVersion');
+        return !storedVersion || parseInt(storedVersion) !== this.version;
+    }
+    
+    // Refresh data from localStorage
+    refreshData() {
+        const newPosts = this.loadPosts();
+        const newVersion = parseInt(localStorage.getItem('blogVersion') || '0');
+        
+        if (newVersion !== this.version) {
+            this.posts = newPosts;
+            this.version = newVersion;
+            return true;
+        }
+        return false;
     }
 }
 
