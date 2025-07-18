@@ -91,7 +91,6 @@ class AuthSystem {
                             <input type="password" id="password" required autofocus>
                         </div>
                         <button type="submit" class="btn btn-primary">ログイン</button>
-                        <p class="auth-note">初期パスワード: admin123</p>
                     </form>
                 </div>
             </div>
