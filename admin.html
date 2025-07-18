@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Admin - My Personal Space</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .admin-header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .admin-header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .admin-nav {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-btn {
+            padding: 8px 16px;
+            background: #1d3557;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .nav-btn:hover {
+            background: #0a1929;
+        }
+        
+        .content-area {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+        }
+        
+        .post-list {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .post-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .post-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .post-item.active {
+            background: #e8f0fe;
+        }
+        
+        .post-date {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .post-title {
+            font-weight: 600;
+            margin: 5px 0;
+        }
+        
+        .editor-area {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .form-group textarea {
+            min-height: 300px;
+            resize: vertical;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: opacity 0.3s;
+        }
+        
+        .btn:hover {
+            opacity: 0.8;
+        }
+        
+        .btn-primary {
+            background: #1d3557;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .preview-area {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .preview-content {
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+        
+        .tag-input {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .tag {
+            background: #e8f0fe;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .tag-remove {
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .tag-remove:hover {
+            color: #333;
+        }
+        
+        @media (max-width: 768px) {
+            .content-area {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>Blog Admin Panel</h1>
+            <div class="admin-nav">
+                <button class="nav-btn" onclick="createNewPost()">新規投稿</button>
+                <a href="index.html" class="nav-btn">サイトを見る</a>
+            </div>
+        </div>
+        
+        <div class="content-area">
+            <div class="post-list" id="postList">
+                <h2>投稿一覧</h2>
+                <div id="postItems"></div>
+            </div>
+            
+            <div class="editor-area">
+                <form id="postForm">
+                    <div class="form-group">
+                        <label for="postTitle">タイトル</label>
+                        <input type="text" id="postTitle" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="postContent">内容</label>
+                        <textarea id="postContent" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>タグ</label>
+                        <div class="tag-input">
+                            <div id="tagList"></div>
+                            <input type="text" id="tagInput" placeholder="タグを追加" style="flex: 1; max-width: 200px;">
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="togglePreview()">プレビュー</button>
+                        <button type="button" class="btn btn-danger" onclick="deleteCurrentPost()" id="deleteBtn" style="display: none;">削除</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+                
+                <div class="preview-area" id="previewArea">
+                    <h3>プレビュー</h3>
+                    <div class="preview-content" id="previewContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="blog.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        let currentPostId = null;
+        let tags = [];
+        const auth = new AuthSystem();
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication
+            if (!auth.checkSession()) {
+                showLoginForm();
+                return;
+            }
+            
+            initializeAdmin();
+        });
+        
+        // Show login form
+        function showLoginForm() {
+            document.body.innerHTML = auth.createLoginForm();
+            
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const password = document.getElementById('password').value;
+                
+                if (auth.login(password)) {
+                    location.reload();
+                } else {
+                    showLoginError('パスワードが間違っています。');
+                }
+            });
+        }
+        
+        // Show login error
+        function showLoginError(message) {
+            const existing = document.querySelector('.auth-error');
+            if (existing) {
+                existing.remove();
+            }
+            
+            const error = document.createElement('div');
+            error.className = 'auth-error';
+            error.textContent = message;
+            document.getElementById('loginForm').appendChild(error);
+        }
+        
+        // Initialize admin interface
+        function initializeAdmin() {
+            loadPostList();
+            
+            // Add logout button
+            const adminNav = document.querySelector('.admin-nav');
+            const logoutBtn = document.createElement('button');
+            logoutBtn.className = 'nav-btn';
+            logoutBtn.textContent = 'ログアウト';
+            logoutBtn.onclick = function() {
+                auth.logout();
+                location.reload();
+            };
+            adminNav.appendChild(logoutBtn);
+            
+            // Add password change option
+            const changePasswordBtn = document.createElement('button');
+            changePasswordBtn.className = 'nav-btn';
+            changePasswordBtn.textContent = 'パスワード変更';
+            changePasswordBtn.onclick = showPasswordChangeForm;
+            adminNav.appendChild(changePasswordBtn);
+            
+            // Form submit handler
+            document.getElementById('postForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                savePost();
+            });
+            
+            // Tag input handler
+            document.getElementById('tagInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addTag(this.value);
+                    this.value = '';
+                }
+            });
+        }
+        
+        // Show password change form
+        function showPasswordChangeForm() {
+            const modal = document.createElement('div');
+            modal.className = 'auth-overlay';
+            modal.innerHTML = `
+                <div class="auth-container">
+                    <h2>パスワード変更</h2>
+                    <form id="passwordForm">
+                        <div class="form-group">
+                            <label for="currentPassword">現在のパスワード</label>
+                            <input type="password" id="currentPassword" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newPassword">新しいパスワード</label>
+                            <input type="password" id="newPassword" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">パスワード確認</label>
+                            <input type="password" id="confirmPassword" required>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button type="button" onclick="closePasswordModal()" class="btn btn-secondary">キャンセル</button>
+                            <button type="submit" class="btn btn-primary">変更</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            document.getElementById('passwordForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                changePassword();
+            });
+        }
+        
+        // Close password modal
+        function closePasswordModal() {
+            const modal = document.querySelector('.auth-overlay');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // Change password
+        function changePassword() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (!auth.checkPassword(currentPassword)) {
+                showPasswordError('現在のパスワードが間違っています。');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                showPasswordError('新しいパスワードが一致しません。');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                showPasswordError('パスワードは6文字以上で入力してください。');
+                return;
+            }
+            
+            auth.setPassword(newPassword);
+            closePasswordModal();
+            alert('パスワードが変更されました。');
+        }
+        
+        // Show password error
+        function showPasswordError(message) {
+            const existing = document.querySelector('.auth-error');
+            if (existing) {
+                existing.remove();
+            }
+            
+            const error = document.createElement('div');
+            error.className = 'auth-error';
+            error.textContent = message;
+            document.getElementById('passwordForm').appendChild(error);
+        }
+        
+        // Load post list
+        function loadPostList() {
+            const posts = blog.getAllPosts();
+            const postItems = document.getElementById('postItems');
+            
+            postItems.innerHTML = posts.map(post => `
+                <div class="post-item" onclick="loadPost('${post.id}')">
+                    <div class="post-date">${formatDate(post.date)}</div>
+                    <div class="post-title">${post.title}</div>
+                </div>
+            `).join('');
+        }
+        
+        // Create new post
+        function createNewPost() {
+            currentPostId = null;
+            document.getElementById('postTitle').value = '';
+            document.getElementById('postContent').value = '';
+            tags = [];
+            updateTagDisplay();
+            document.getElementById('deleteBtn').style.display = 'none';
+            
+            // Remove active class from all posts
+            document.querySelectorAll('.post-item').forEach(item => {
+                item.classList.remove('active');
+            });
+        }
+        
+        // Load existing post
+        function loadPost(id) {
+            const post = blog.getPost(id);
+            if (post) {
+                currentPostId = id;
+                document.getElementById('postTitle').value = post.title;
+                document.getElementById('postContent').value = post.content;
+                tags = post.tags || [];
+                updateTagDisplay();
+                document.getElementById('deleteBtn').style.display = 'block';
+                
+                // Update active state
+                document.querySelectorAll('.post-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                event.currentTarget.classList.add('active');
+            }
+        }
+        
+        // Save post
+        function savePost() {
+            const title = document.getElementById('postTitle').value;
+            const content = document.getElementById('postContent').value;
+            
+            if (currentPostId) {
+                // Update existing post
+                blog.updatePost(currentPostId, { title, content, tags });
+            } else {
+                // Create new post
+                blog.createPost(title, content, tags);
+            }
+            
+            loadPostList();
+            alert('保存しました！');
+        }
+        
+        // Delete post
+        function deleteCurrentPost() {
+            if (currentPostId && confirm('この投稿を削除してもよろしいですか？')) {
+                blog.deletePost(currentPostId);
+                createNewPost();
+                loadPostList();
+                alert('削除しました。');
+            }
+        }
+        
+        // Tag management
+        function addTag(tag) {
+            if (tag && !tags.includes(tag)) {
+                tags.push(tag);
+                updateTagDisplay();
+            }
+        }
+        
+        function removeTag(tag) {
+            tags = tags.filter(t => t !== tag);
+            updateTagDisplay();
+        }
+        
+        function updateTagDisplay() {
+            const tagList = document.getElementById('tagList');
+            tagList.innerHTML = tags.map(tag => `
+                <span class="tag">
+                    ${tag}
+                    <span class="tag-remove" onclick="removeTag('${tag}')">×</span>
+                </span>
+            `).join('');
+        }
+        
+        // Toggle preview
+        function togglePreview() {
+            const previewArea = document.getElementById('previewArea');
+            const previewContent = document.getElementById('previewContent');
+            
+            if (previewArea.style.display === 'block') {
+                previewArea.style.display = 'none';
+            } else {
+                previewContent.textContent = document.getElementById('postContent').value;
+                previewArea.style.display = 'block';
+            }
+        }
+        
+        // Format date
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('ja-JP', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+        }
+    </script>
+</body>
+</html>
