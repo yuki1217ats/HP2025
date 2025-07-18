@@ -623,7 +623,10 @@
                 if (!file) return;
                 
                 try {
+                    console.log('Starting upload...', file.name);
                     const result = await imageUploader.uploadImage(file);
+                    console.log('Upload success:', result);
+                    
                     const imageUrl = result.url;
                     const imageMarkdown = `![${result.filename}](${imageUrl})`;
                     
@@ -637,10 +640,10 @@
                     // Refresh image gallery
                     loadImageGallery();
                     
-                    alert('画像をアップロードしました！');
+                    alert(`画像をアップロードしました！\nURL: ${imageUrl}`);
                 } catch (error) {
                     console.error('Upload error:', error);
-                    alert('アップロードに失敗しました: ' + error.message);
+                    alert('アップロードに失敗しました: ' + error.message + '\n\nConsoleでエラー詳細を確認してください。');
                 }
             };
         }
