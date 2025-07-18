@@ -205,6 +205,49 @@
                 grid-template-columns: 1fr;
             }
         }
+        
+        /* Image upload styles */
+        .image-upload-area {
+            border: 2px dashed #ddd;
+            padding: 20px;
+            text-align: center;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .image-item {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .image-item:hover {
+            border-color: #1d3557;
+            background-color: #f8f9fa;
+        }
+        
+        .image-item img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        
+        .image-name {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            word-break: break-all;
+        }
     </style>
 </head>
 <body>
@@ -236,6 +279,15 @@
                     </div>
                     
                     <div class="form-group">
+                        <label>画像</label>
+                        <div class="image-upload-area">
+                            <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                            <button type="button" class="btn btn-secondary" onclick="uploadImage()">画像をアップロード</button>
+                            <div id="imageGallery" class="image-gallery"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
                         <label>タグ</label>
                         <div class="tag-input">
                             <div id="tagList"></div>
@@ -260,10 +312,12 @@
     
     <script src="blog.js"></script>
     <script src="auth.js"></script>
+    <script src="image-upload.js"></script>
     <script>
         let currentPostId = null;
         let tags = [];
         const auth = new AuthSystem();
+        const imageUploader = new GitHubImageUploader();
         
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
@@ -308,6 +362,7 @@
         // Initialize admin interface
         function initializeAdmin() {
             loadPostList();
+            loadImageGallery();
             
             // Add logout button
             const adminNav = document.querySelector('.admin-nav');
@@ -326,6 +381,13 @@
             changePasswordBtn.textContent = 'パスワード変更';
             changePasswordBtn.onclick = showPasswordChangeForm;
             adminNav.appendChild(changePasswordBtn);
+            
+            // Add GitHub token setup button
+            const tokenBtn = document.createElement('button');
+            tokenBtn.className = 'nav-btn';
+            tokenBtn.textContent = 'GitHub設定';
+            tokenBtn.onclick = showTokenDialog;
+            adminNav.appendChild(tokenBtn);
             
             // Form submit handler
             document.getElementById('postForm').addEventListener('submit', function(e) {
@@ -544,6 +606,94 @@
                 month: '2-digit',
                 day: '2-digit'
             });
+        }
+        
+        // Image upload functions
+        function uploadImage() {
+            if (!imageUploader.hasToken()) {
+                showTokenDialog();
+                return;
+            }
+            
+            const input = document.getElementById('imageInput');
+            input.click();
+            
+            input.onchange = async function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                try {
+                    const result = await imageUploader.uploadImage(file);
+                    const imageUrl = result.url;
+                    const imageMarkdown = `![${result.filename}](${imageUrl})`;
+                    
+                    // Insert image markdown into content
+                    const textarea = document.getElementById('postContent');
+                    const cursorPos = textarea.selectionStart;
+                    const textBefore = textarea.value.substring(0, cursorPos);
+                    const textAfter = textarea.value.substring(cursorPos);
+                    textarea.value = textBefore + imageMarkdown + textAfter;
+                    
+                    // Refresh image gallery
+                    loadImageGallery();
+                    
+                    alert('画像をアップロードしました！');
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    alert('アップロードに失敗しました: ' + error.message);
+                }
+            };
+        }
+        
+        // Load image gallery
+        async function loadImageGallery() {
+            try {
+                const images = await imageUploader.getImages();
+                const gallery = document.getElementById('imageGallery');
+                
+                gallery.innerHTML = images.map(image => `
+                    <div class="image-item">
+                        <img src="${image.url}" alt="${image.name}" onclick="insertImageToPost('${image.url}', '${image.name}')">
+                        <div class="image-name">${image.name}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading images:', error);
+            }
+        }
+        
+        // Insert image to post
+        function insertImageToPost(url, filename) {
+            const imageMarkdown = `![${filename}](${url})`;
+            const textarea = document.getElementById('postContent');
+            const cursorPos = textarea.selectionStart;
+            const textBefore = textarea.value.substring(0, cursorPos);
+            const textAfter = textarea.value.substring(cursorPos);
+            textarea.value = textBefore + imageMarkdown + textAfter;
+            textarea.focus();
+        }
+        
+        // Show GitHub token dialog
+        function showTokenDialog() {
+            const modal = document.createElement('div');
+            modal.innerHTML = imageUploader.createTokenDialog();
+            document.body.appendChild(modal);
+            
+            document.getElementById('tokenForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const token = document.getElementById('githubToken').value;
+                imageUploader.setToken(token);
+                closeTokenDialog();
+                alert('GitHub Tokenを設定しました！');
+            });
+        }
+        
+        // Close token dialog
+        function closeTokenDialog() {
+            const modal = document.querySelector('.token-overlay');
+            if (modal) {
+                modal.remove();
+            }
         }
     </script>
 </body>
