@@ -124,12 +124,6 @@ class AuthSystem {
                     color: #333;
                 }
                 
-                .auth-note {
-                    margin-top: 20px;
-                    font-size: 14px;
-                    color: #666;
-                    text-align: center;
-                }
                 
                 #loginForm .form-group {
                     margin-bottom: 20px;
